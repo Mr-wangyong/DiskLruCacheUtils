@@ -1,0 +1,2 @@
+# DiskLruCacheUtils
+封装的一个DiskLruCache的工具类
