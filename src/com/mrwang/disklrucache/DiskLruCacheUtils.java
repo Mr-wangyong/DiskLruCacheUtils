@@ -17,6 +17,8 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
+import android.provider.MediaStore.Files;
+import android.text.format.Formatter;
 
 import com.mrwang.disklrucache.DiskLruCache.Editor;
 import com.mrwang.disklrucache.DiskLruCache.Snapshot;
@@ -253,5 +255,64 @@ public class DiskLruCacheUtils {
 			sb.append(hex);
 		}
 		return sb.toString();
+	}
+	/**
+	 * 从本地缓存中移除一张图片
+	 * @param imageUrl
+	 * @return
+	 */
+	public boolean remove(String imageUrl){
+		try {
+			String key = hashKeyFroDisk(imageUrl);
+			mDiskLruCache.remove(key);
+			return true;
+		} catch (IOException e) {
+			e.printStackTrace();
+			LogUtils.d("图片移除失败");
+		}
+		return false;
+	}
+	/**
+	 * 获取当前本地缓存的大小
+	 * @return
+	 */
+	public String getCacheSize(){
+		return Formatter.formatFileSize(context, mDiskLruCache.size());
+	}
+	/**
+	 * 将内存中的操作记录同步到日志文件（也就是journal文件）当中
+	 * 建议Activity的onPause()方法中去调用一次
+	 */
+	public void flush(){
+		try {
+			mDiskLruCache.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+			LogUtils.d("日志文件写入失败");
+		}
+	}
+	/**
+	 * 将DiskLruCache关闭掉(open()方法对应)<br/>
+	 * 关闭掉了之后就不能再调用DiskLruCache中任何操作缓存数据的方法<br/>
+	 * 建议在Activity的onDestroy()方法中去调用
+	 */
+	public void close(){
+		try {
+			mDiskLruCache.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+			LogUtils.d("DiskLruCache关闭失败");
+		}
+	}
+	/**
+	 * 将所有的缓存数据全部删除<br/>
+	 */
+	public void delete(){
+		try {
+			mDiskLruCache.delete();
+		} catch (IOException e) {
+			e.printStackTrace();
+			LogUtils.d("本地缓存删除失败");
+		}
 	}
 }
